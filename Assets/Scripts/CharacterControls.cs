@@ -37,25 +37,23 @@ public class CharacterControls : MonoBehaviour
     private AudioSource dieSound;
 
     public PhotonView myPhotonView;
-
-    private bool IsPunching;
-    private bool IsWaving;
-
+    
     // Use this for initialization
     void Start()
     {
         if (!myPhotonView.isMine)
         {
             cameraTransform.GetComponent<Camera>().enabled = false;//gameObject.SetActive(false);
-            return;
         }
         else
         {
             Debug.Log("My photon view, I am: " + myPhotonView.viewID);
         }
 
+        
         Cursor.lockState = CursorLockMode.Locked;
-        //Cursor.visible = false;
+        jetpackFuel = MaxJetpackFuel;
+        canJetpack = true;
 
         AudioSource[] sources = cameraTransform.GetComponents<AudioSource>();
         foreach (AudioSource a in sources)
@@ -67,9 +65,6 @@ public class CharacterControls : MonoBehaviour
             else if (a.clip.name == "punch_ground") punchGroundSound = a;
             else if (a.clip.name == "die") dieSound = a;
         }
-
-        jetpackFuel = MaxJetpackFuel;
-        canJetpack = true;
         
     }
 

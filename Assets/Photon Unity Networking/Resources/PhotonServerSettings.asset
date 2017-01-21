@@ -43,8 +43,6 @@ MonoBehaviour:
   - RequestForPickupItems
   - RequestForPickupTimes
   - TaggedPlayer
-  - Wave
-  - Punch
   - DoPunch
   - DoWave
   DisableAutoOpenWizard: 1
