@@ -27,10 +27,10 @@ public class CharacterControls : MonoBehaviour
     private bool canJetpack;
 
     public Transform cameraTransform;
-    private new Rigidbody rigidbody;
-    private new CapsuleCollider collider;
+    public Rigidbody rigidbody;
+    public CapsuleCollider collider;
     public BoxCollider hitTrigger;
-    private Animator animator;
+    public Animator animator;
 
     private AudioSource jetpackStartSound, jetpackLoopSound;
     private AudioSource punchSound, punchGroundSound;
@@ -70,11 +70,7 @@ public class CharacterControls : MonoBehaviour
 
         jetpackFuel = MaxJetpackFuel;
         canJetpack = true;
-
-        rigidbody = GetComponent<Rigidbody>();
-        collider = GetComponent<CapsuleCollider>();
-        hitTrigger = transform.GetChild(0).GetChild(2).GetComponent<BoxCollider>();
-        animator = GetComponent<Animator>();
+        
     }
 
     // Update is called once per frame
