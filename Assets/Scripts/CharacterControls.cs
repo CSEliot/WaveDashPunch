@@ -40,7 +40,11 @@ public class CharacterControls : MonoBehaviour {
 
 
         if (!myPhotonView.isMine)
+        {
+
+            cameraTransform.GetComponent<Camera>().enabled = false;//gameObject.SetActive(false);
             return;
+        }
         else
         {
             Debug.Log("My photon view, I am: " + myPhotonView.viewID);
