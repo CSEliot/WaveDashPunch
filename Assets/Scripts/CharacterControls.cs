@@ -245,8 +245,7 @@ public class CharacterControls : MonoBehaviour {
             // Use energy, give boost
             if (jetpackFuel - PunchEnergy >= 0f)
             {
-                animator.SetBool("DoPunch", true);
-                animator.SetBool("DoWave", false);
+                animator.SetTrigger("DoPunch");
                 jetpackFuel = Mathf.Max(jetpackFuel - PunchEnergy, 0f);
 
                 if (Physics.Raycast(transform.position, cameraTransform.forward, 3f))
@@ -258,13 +257,7 @@ public class CharacterControls : MonoBehaviour {
         }
         else if (Input.GetKeyDown(KeyCode.Q))
         {
-            animator.SetBool("DoWave", true);
-            animator.SetBool("DoPunch", false);
-        }
-        else
-        {
-            animator.SetBool("DoWave", false);
-            animator.SetBool("DoPunch", false);
+            animator.SetTrigger("DoWave");
         }
     }
 }
