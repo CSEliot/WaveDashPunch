@@ -906,7 +906,10 @@ MonoBehaviour:
   PunchEnergy: 20
   PunchBoostForce: 1000
   cameraTransform: {fileID: 4164658070363748}
+  rigidbody: {fileID: 54352887813846456}
+  collider: {fileID: 136417310685451778}
   hitTrigger: {fileID: 65726751455519370}
+  animator: {fileID: 95528087557560018}
   myPhotonView: {fileID: 114312300061237254}
 --- !u!114 &114424514764216288
 MonoBehaviour:
