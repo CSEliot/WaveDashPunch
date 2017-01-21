@@ -5,12 +5,12 @@ using UnityEngine;
 public class CharacterControls : MonoBehaviour {
 
     public float MouseSensitivity = 50.0f;
-    public float JumpPower = 20.0f;
-    public float JetpackPower = 15.0f;
     public float MaxRunSpeed = 10.0f;
     public float RunAcceleration = 50.0f;
     public float AirAcceleration = 10.0f;
 
+    public float JumpPower = 30.0f;
+    public float JetpackPower = 25.0f;
     public float MaxJetpackFuel = 100.0f;
     public float JetpackUseRate = 30.0f;
     public float MinJetpackFuel = 10.0f;
@@ -68,68 +68,74 @@ public class CharacterControls : MonoBehaviour {
         float forwardSpeed = Vector3.Dot(forward, rigidbody.velocity);
         float rightSpeed = Vector3.Dot(right, rigidbody.velocity);
 
+        // Check movement controls
+        Vector3 inputDir = Vector3.zero;
+        bool keyPressed = false;
+        if (Input.GetKey(KeyCode.W))
+        {
+            keyPressed = true;
+            inputDir += forward;
+        }
+        if (Input.GetKey(KeyCode.S))
+        {
+            keyPressed = true;
+            inputDir -= forward;
+        }
+        if (Input.GetKey(KeyCode.A))
+        {
+            keyPressed = true;
+            inputDir -= right;
+        }
+        if (Input.GetKey(KeyCode.D))
+        {
+            keyPressed = true;
+            inputDir += right;
+        }
+        inputDir.Normalize();
+
         // Movement
         bool skiing = Input.GetKey(KeyCode.LeftShift);
         collider.sharedMaterial.dynamicFriction = 0f;
         collider.sharedMaterial.staticFriction = 0f;
-        if (!skiing)
+        if (!onGround || skiing)
         {
-            collider.sharedMaterial.dynamicFriction = 1f;
-            collider.sharedMaterial.staticFriction = 1f;
+            Vector3 velocityDir = rigidbody.velocity;
+            velocityDir.y = 0;
+            velocityDir.Normalize();
+            Vector3 perpForward = forward - Vector3.Dot(velocityDir, forward) * forward.normalized;
+            Vector3 perpRight = right - Vector3.Dot(velocityDir, right) * right.normalized;
 
-            bool keyPressed = false;
             if (Input.GetKey(KeyCode.W))
             {
-                keyPressed = true;
                 if (forwardSpeed < MaxRunSpeed)
-                    rigidbody.AddForce(forward * (onGround ? RunAcceleration : AirAcceleration));
+                    rigidbody.AddForce(((skiing && onGround) ? perpForward : forward) * AirAcceleration);
             }
             if (Input.GetKey(KeyCode.S))
             {
-                keyPressed = true;
                 if (forwardSpeed > -MaxRunSpeed)
-                    rigidbody.AddForce(forward * -(onGround ? RunAcceleration : AirAcceleration));
+                    rigidbody.AddForce(((skiing && onGround) ? perpForward : forward) * -AirAcceleration);
             }
             if (Input.GetKey(KeyCode.A))
             {
-                keyPressed = true;
                 if (rightSpeed > -MaxRunSpeed)
-                    rigidbody.AddForce(right * -(onGround ? RunAcceleration : AirAcceleration));
+                    rigidbody.AddForce(((skiing && onGround) ? perpRight : right) * -AirAcceleration);
             }
             if (Input.GetKey(KeyCode.D))
             {
-                keyPressed = true;
                 if (rightSpeed < MaxRunSpeed)
-                    rigidbody.AddForce(right * (onGround ? RunAcceleration : AirAcceleration));
-            }
-
-            if (!keyPressed)
-            {
-                collider.sharedMaterial.dynamicFriction = 5f;
-                collider.sharedMaterial.staticFriction = 5f;
+                    rigidbody.AddForce(((skiing && onGround) ? perpRight : right) * AirAcceleration);
             }
         }
-        else
+        else  // not skiing
         {
-            if (Input.GetKey(KeyCode.W))
+            collider.sharedMaterial.dynamicFriction = keyPressed ? 1f : 5f;
+            collider.sharedMaterial.staticFriction = keyPressed ? 1f : 5f;
+
+            rigidbody.AddForce(inputDir * (onGround ? RunAcceleration : AirAcceleration));
+            if (rigidbody.velocity.sqrMagnitude > MaxRunSpeed * MaxRunSpeed)
             {
-                if (forwardSpeed < MaxRunSpeed)
-                    rigidbody.AddForce(forward * AirAcceleration);
-            }
-            if (Input.GetKey(KeyCode.S))
-            {
-                if (forwardSpeed > -MaxRunSpeed)
-                    rigidbody.AddForce(forward * -AirAcceleration);
-            }
-            if (Input.GetKey(KeyCode.A))
-            {
-                if (rightSpeed > -MaxRunSpeed)
-                    rigidbody.AddForce(right * -AirAcceleration);
-            }
-            if (Input.GetKey(KeyCode.D))
-            {
-                if (rightSpeed < MaxRunSpeed)
-                    rigidbody.AddForce(right * AirAcceleration);
+                if (onGround)
+                    rigidbody.velocity = rigidbody.velocity.normalized * MaxRunSpeed;
             }
         }
 
