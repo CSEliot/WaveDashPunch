@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Beam
   - Fire
+  - UI
   layers:
   - Default
   - TransparentFX

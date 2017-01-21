@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class CharacterControls : MonoBehaviour {
 
@@ -17,12 +18,16 @@ public class CharacterControls : MonoBehaviour {
     public float JetpackRechargeRate = 15.0f;
 
     private float jetpackFuel;
+    private bool canJetpack;
 
     private Transform cameraTransform;
     private new Transform transform;
     private new Rigidbody rigidbody;
     private new CapsuleCollider collider;
     private Animator animator;
+
+    private GameObject ui;
+    private RectTransform jetpackBar;
 
     // Use this for initialization
     void Start ()
@@ -31,12 +36,19 @@ public class CharacterControls : MonoBehaviour {
         Cursor.visible = false;
 
         jetpackFuel = MaxJetpackFuel;
+        canJetpack = true;
 
         transform = GetComponent<Transform>();
         cameraTransform = transform.GetChild(0).GetComponent<Transform>();
         rigidbody = GetComponent<Rigidbody>();
         collider = GetComponent<CapsuleCollider>();
         animator = GetComponent<Animator>();
+
+        ui = GameObject.FindGameObjectWithTag("UI");
+        if (ui != null)
+        {
+            jetpackBar = ui.transform.GetChild(0).GetChild(0).GetComponent<RectTransform>();
+        }
     }
 	
 	// Update is called once per frame
@@ -142,11 +154,24 @@ public class CharacterControls : MonoBehaviour {
         }
 
         // Jumping/jetpacking
+        if (Input.GetMouseButtonDown(1))
+            canJetpack = true;
+
         if (Input.GetMouseButton(1))
         {
             if (onGround)
                 rigidbody.AddExplosionForce(JumpPower, transform.position + Vector3.down * 3.0f, 10.0f);
             if (jetpackFuel > MinJetpackFuel)
+            {
+                canJetpack = true;
+            }
+            else if (jetpackFuel <= 0f)
+            {
+                jetpackFuel = 0.0f;
+                canJetpack = false;
+            }
+
+            if (canJetpack)
             {
                 rigidbody.AddForce(Vector3.up * JetpackPower);
                 jetpackFuel -= JetpackUseRate * Time.deltaTime;
@@ -165,6 +190,9 @@ public class CharacterControls : MonoBehaviour {
             jetpackFuel = 0.0f;
         else if (jetpackFuel > MaxJetpackFuel)
             jetpackFuel = MaxJetpackFuel;
+
+        // Update jetpack UI
+        jetpackBar.localScale = new Vector3(jetpackFuel / MaxJetpackFuel, 1f, 1f);
 
         // Wave/punch
         if (Input.GetKeyDown(KeyCode.Space))
