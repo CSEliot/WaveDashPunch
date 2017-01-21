@@ -52,7 +52,7 @@ public class Step1_Connect : Photon.MonoBehaviour
         PhotonNetwork.JoinRoom("WaveDashRun");
     }
 
-    public virtual void OnPhotonRandomJoinFailed()
+    public virtual void OnPhotonJoinRoomFailed()
     {
         Debug.Log("OnPhotonRandomJoinFailed() was called by PUN. No random room available, so we create one. Calling: PhotonNetwork.CreateRoom(null, new RoomOptions() {maxPlayers = 4}, null);");
         PhotonNetwork.CreateRoom("WaveDashRun", new RoomOptions() { MaxPlayers = 100 }, null);
