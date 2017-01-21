@@ -29,10 +29,12 @@ public class CharacterControls : MonoBehaviour {
     private new Transform transform;
     private new Rigidbody rigidbody;
     private new CapsuleCollider collider;
+    private BoxCollider hitTrigger;
     private Animator animator;
 
     private GameObject ui;
     private RectTransform jetpackBar;
+    private RectTransform healthBar;
 
     // Use this for initialization
     void Start ()
@@ -47,12 +49,14 @@ public class CharacterControls : MonoBehaviour {
         cameraTransform = transform.GetChild(0).GetComponent<Transform>();
         rigidbody = GetComponent<Rigidbody>();
         collider = GetComponent<CapsuleCollider>();
+        hitTrigger = transform.GetChild(0).GetChild(2).GetComponent<BoxCollider>();
         animator = GetComponent<Animator>();
 
         ui = GameObject.FindGameObjectWithTag("UI");
         if (ui != null)
         {
             jetpackBar = ui.transform.GetChild(0).GetChild(0).GetComponent<RectTransform>();
+            healthBar = ui.transform.GetChild(1).GetChild(0).GetComponent<RectTransform>();
         }
     }
 	
@@ -161,7 +165,6 @@ public class CharacterControls : MonoBehaviour {
         // Jumping/jetpacking
         if (Input.GetMouseButtonDown(1))
             canJetpack = true;
-
         if (Input.GetMouseButton(1))
         {
             if (onGround)
@@ -201,9 +204,11 @@ public class CharacterControls : MonoBehaviour {
         // Wave/punch
         if (Input.GetKeyDown(KeyCode.E))
         {
+            // Use energy, give boost
             jetpackFuel = Mathf.Max(jetpackFuel - PunchEnergy, 0f);
             if (jetpackFuel != 0f && Physics.Raycast(transform.position, cameraTransform.forward, 3f))
                 rigidbody.AddExplosionForce(PunchBoostForce, transform.position + cameraTransform.forward * 5, 100f);
+
             animator.SetBool("DoPunch", true);
             animator.SetBool("DoWave", false);
         }
