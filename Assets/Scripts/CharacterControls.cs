@@ -32,6 +32,7 @@ public class CharacterControls : MonoBehaviour {
     private Animator animator;
 
     public PhotonView myPhotonView;
+    
 
     // Use this for initialization
     void Start ()
@@ -65,6 +66,29 @@ public class CharacterControls : MonoBehaviour {
 	// Update is called once per frame
 	void Update ()
     {
+
+        // Wave/punch
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            // Use energy, give boost
+            jetpackFuel = Mathf.Max(jetpackFuel - PunchEnergy, 0f);
+            if (jetpackFuel != 0f && Physics.Raycast(transform.position, cameraTransform.forward, 3f))
+                rigidbody.AddExplosionForce(PunchBoostForce, transform.position + cameraTransform.forward * 5, 100f);
+
+            animator.SetBool("DoPunch", true);
+            animator.SetBool("DoWave", false);
+        }
+        else if (Input.GetKeyDown(KeyCode.Q))
+        {
+            animator.SetBool("DoWave", true);
+            animator.SetBool("DoPunch", false);
+        }
+        else
+        {
+            animator.SetBool("DoWave", false);
+            animator.SetBool("DoPunch", false);
+        
+
         if (!myPhotonView.isMine)
             return;
         else
@@ -209,27 +233,15 @@ public class CharacterControls : MonoBehaviour {
 
         // Update jetpack UI
         _UI.SetJetBar(jetpackFuel / MaxJetpackFuel);
+    }
 
-        // Wave/punch
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            // Use energy, give boost
-            jetpackFuel = Mathf.Max(jetpackFuel - PunchEnergy, 0f);
-            if (jetpackFuel != 0f && Physics.Raycast(transform.position, cameraTransform.forward, 3f))
-                rigidbody.AddExplosionForce(PunchBoostForce, transform.position + cameraTransform.forward * 5, 100f);
+    public void Punch()
+    {
 
-            animator.SetBool("DoPunch", true);
-            animator.SetBool("DoWave", false);
-        }
-        else if (Input.GetKeyDown(KeyCode.Q))
-        {
-            animator.SetBool("DoWave", true);
-            animator.SetBool("DoPunch", false);
-        }
-        else
-        {
-            animator.SetBool("DoWave", false);
-            animator.SetBool("DoPunch", false);
-        }
+    }
+
+    public void Wave()
+    {
+
     }
 }
