@@ -17,6 +17,11 @@ public class CharacterControls : MonoBehaviour {
     public float MinJetpackFuel = 10.0f;
     public float JetpackRechargeRate = 15.0f;
 
+    public float Health = 100f;
+
+    public float PunchEnergy = 20f;
+    public float PunchBoostForce = 100f;
+
     private float jetpackFuel;
     private bool canJetpack;
 
@@ -185,7 +190,6 @@ public class CharacterControls : MonoBehaviour {
         {
             jetpackFuel += JetpackRechargeRate * Time.deltaTime;
         }
-
         if (jetpackFuel < 0.0f)
             jetpackFuel = 0.0f;
         else if (jetpackFuel > MaxJetpackFuel)
@@ -195,8 +199,11 @@ public class CharacterControls : MonoBehaviour {
         jetpackBar.localScale = new Vector3(jetpackFuel / MaxJetpackFuel, 1f, 1f);
 
         // Wave/punch
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.E))
         {
+            jetpackFuel = Mathf.Max(jetpackFuel - PunchEnergy, 0f);
+            if (jetpackFuel != 0f && Physics.Raycast(transform.position, cameraTransform.forward, 3f))
+                rigidbody.AddExplosionForce(PunchBoostForce, transform.position + cameraTransform.forward * 5, 100f);
             animator.SetBool("DoPunch", true);
             animator.SetBool("DoWave", false);
         }
