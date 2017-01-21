@@ -536,8 +536,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   SpawnOBJNames:
   - PlayerBlueDefense
-  - PlayerGreenSpeed
-  - PlayerRedPower
   Spawner: {fileID: 930678192}
   UICharSelectPanel: {fileID: 212599740}
 --- !u!114 &1965101869
