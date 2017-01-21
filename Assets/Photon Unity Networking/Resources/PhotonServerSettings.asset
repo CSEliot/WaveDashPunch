@@ -45,4 +45,6 @@ MonoBehaviour:
   - TaggedPlayer
   - Wave
   - Punch
+  - DoPunch
+  - DoWave
   DisableAutoOpenWizard: 1
