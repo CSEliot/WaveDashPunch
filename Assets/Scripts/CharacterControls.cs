@@ -42,7 +42,6 @@ public class CharacterControls : MonoBehaviour {
     {
         if (!myPhotonView.isMine)
         {
-
             cameraTransform.GetComponent<Camera>().enabled = false;//gameObject.SetActive(false);
             return;
         }
@@ -54,14 +53,15 @@ public class CharacterControls : MonoBehaviour {
         Cursor.lockState = CursorLockMode.Locked;
         //Cursor.visible = false;
 
-        AudioSource[] sources = GetComponents<AudioSource>();
+        AudioSource[] sources = cameraTransform.GetComponents<AudioSource>();
         foreach (AudioSource a in sources)
         {
-            if (a.name == "jetpack_start") jetpackStartSound = a;
-            else if (a.name == "jetpack_loop") jetpackLoopSound = a;
-            else if (a.name == "punch") punchSound = a;
-            else if (a.name == "punch_ground") punchGroundSound = a;
-            else if (a.name == "die") dieSound= a;
+            Debug.Log(a.clip.name);
+            if (a.clip.name == "jetpack_start") jetpackStartSound = a;
+            else if (a.clip.name == "jetpack_loop") jetpackLoopSound = a;
+            else if (a.clip.name == "punch") punchSound = a;
+            else if (a.clip.name == "punch_ground") punchGroundSound = a;
+            else if (a.clip.name == "die") dieSound = a;
         }
 
         jetpackFuel = MaxJetpackFuel;
@@ -194,11 +194,16 @@ public class CharacterControls : MonoBehaviour {
 
             canJetpack = true;
         }
+        else if (Input.GetMouseButtonUp(1))
+        {
+            jetpackLoopSound.volume = 0f;
+            jetpackStartSound.Stop();
+        }
         if (Input.GetMouseButton(1))
         {
             // Transition into more seemless loop from initial burst
             jetpackLoopSound.volume = Mathf.Min(1f, jetpackLoopSound.volume + 0.5f * Time.deltaTime);
-            jetpackStartSound.volume = Mathf.Max(0f, jetpackLoopSound.volume + 0.5f * Time.deltaTime);
+            jetpackStartSound.volume = Mathf.Max(0f, jetpackStartSound.volume - 0.5f * Time.deltaTime);
 
             if (onGround)
                 rigidbody.AddExplosionForce(JumpPower, transform.position + Vector3.down * 3.0f, 10.0f);
