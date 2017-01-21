@@ -204,16 +204,12 @@ public class CharacterControls : MonoBehaviour
 
             canJetpack = true;
         }
-        else if (Input.GetMouseButtonUp(1))
-        {
-            jetpackLoopSound.volume = 0f;
-            jetpackStartSound.Stop();
-        }
+
+        jetpackStartSound.volume = Mathf.Max(0f, jetpackStartSound.volume - 2f * Time.deltaTime);
         if (Input.GetMouseButton(1))
         {
             // Transition into more seemless loop from initial burst
             jetpackLoopSound.volume = Mathf.Min(1f, jetpackLoopSound.volume + 0.5f * Time.deltaTime);
-            jetpackStartSound.volume = Mathf.Max(0f, jetpackStartSound.volume - 0.5f * Time.deltaTime);
 
             if (onGround)
                 rigidbody.AddExplosionForce(JumpPower, transform.position + Vector3.down * 3.0f, 10.0f);
@@ -239,6 +235,7 @@ public class CharacterControls : MonoBehaviour
         }
         else
         {
+            jetpackLoopSound.volume = Mathf.Max(0f, jetpackLoopSound.volume - 2f * Time.deltaTime);
             jetpackFuel += JetpackRechargeRate * Time.deltaTime;
         }
         if (jetpackFuel < 0.0f)
