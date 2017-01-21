@@ -5,11 +5,18 @@ using UnityEngine;
 public class CharacterControls : MonoBehaviour {
 
     public float MouseSensitivity = 50.0f;
-    public float JumpPower = 100.0f;
+    public float JumpPower = 20.0f;
     public float JetpackPower = 15.0f;
     public float MaxRunSpeed = 10.0f;
     public float RunAcceleration = 50.0f;
     public float AirAcceleration = 10.0f;
+
+    public float MaxJetpackFuel = 100.0f;
+    public float JetpackUseRate = 30.0f;
+    public float MinJetpackFuel = 10.0f;
+    public float JetpackRechargeRate = 15.0f;
+
+    private float jetpackFuel;
 
     private Transform cameraTransform;
     private new Transform transform;
@@ -21,6 +28,8 @@ public class CharacterControls : MonoBehaviour {
     {
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+
+        jetpackFuel = MaxJetpackFuel;
 
         transform = GetComponent<Transform>();
         cameraTransform = transform.GetChild(0).GetComponent<Transform>();
@@ -129,7 +138,24 @@ public class CharacterControls : MonoBehaviour {
         {
             if (onGround)
                 rigidbody.AddExplosionForce(JumpPower, transform.position + Vector3.down * 3.0f, 10.0f);
-            rigidbody.AddForce(Vector3.up * JetpackPower);
+            if (jetpackFuel > MinJetpackFuel)
+            {
+                rigidbody.AddForce(Vector3.up * JetpackPower);
+                jetpackFuel -= JetpackUseRate * Time.deltaTime;
+            }
+            else
+            {
+                jetpackFuel += JetpackRechargeRate * Time.deltaTime;
+            }
         }
+        else
+        {
+            jetpackFuel += JetpackRechargeRate * Time.deltaTime;
+        }
+
+        if (jetpackFuel < 0.0f)
+            jetpackFuel = 0.0f;
+        else if (jetpackFuel > MaxJetpackFuel)
+            jetpackFuel = MaxJetpackFuel;
     }
 }
