@@ -254,21 +254,25 @@ public class CharacterControls : MonoBehaviour
     public void DoPunch()
     {
         // Use energy, give boost
-        jetpackFuel = Mathf.Max(jetpackFuel - PunchEnergy, 0f);
-        if (jetpackFuel != 0f && Physics.Raycast(transform.position, cameraTransform.forward, 3f))
+        if (jetpackFuel - PunchEnergy >= 0f)
         {
-            punchGroundSound.Play();
-            rigidbody.AddExplosionForce(PunchBoostForce, transform.position + cameraTransform.forward * 5, 100f);
+            animator.SetTrigger("DoPunch");
+            jetpackFuel = Mathf.Max(jetpackFuel - PunchEnergy, 0f);
+            if (jetpackFuel != 0f && Physics.Raycast(transform.position, cameraTransform.forward, 3f))
+                if (Physics.Raycast(transform.position, cameraTransform.forward, 3f))
+                {
+                    punchGroundSound.Play();
+                    rigidbody.AddExplosionForce(PunchBoostForce, transform.position + cameraTransform.forward * 5, 100f);
+                }
         }
-
         animator.SetBool("DoPunch", true);
         animator.SetBool("DoWave", false);
     }
 
     [PunRPC]
     public void DoWave()
-    {
-        animator.SetBool("DoWave", true);
-        animator.SetBool("DoPunch", false);
+        {
+            animator.SetBool("DoWave", true);
+            animator.SetBool("DoPunch", false);
     }
 }
