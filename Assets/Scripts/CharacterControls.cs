@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class CharacterControls : MonoBehaviour {
+public class CharacterControls : MonoBehaviour
+{
 
     public float MouseSensitivity = 50.0f;
     public float MaxRunSpeed = 10.0f;
@@ -37,8 +38,11 @@ public class CharacterControls : MonoBehaviour {
 
     public PhotonView myPhotonView;
 
+    private bool IsPunching;
+    private bool IsWaving;
+
     // Use this for initialization
-    void Start ()
+    void Start()
     {
         if (!myPhotonView.isMine)
         {
@@ -66,21 +70,27 @@ public class CharacterControls : MonoBehaviour {
 
         jetpackFuel = MaxJetpackFuel;
         canJetpack = true;
-        
+
         rigidbody = GetComponent<Rigidbody>();
         collider = GetComponent<CapsuleCollider>();
         hitTrigger = transform.GetChild(0).GetChild(2).GetComponent<BoxCollider>();
         animator = GetComponent<Animator>();
     }
-	
-	// Update is called once per frame
-	void Update ()
+
+    // Update is called once per frame
+    void Update()
     {
         if (!myPhotonView.isMine)
             return;
-        else
+
+        // Wave/punch
+        if (Input.GetKeyDown(KeyCode.E))
         {
-            Debug.Log("My photon view, I am: " + myPhotonView.viewID);
+            myPhotonView.RPC("DoPunch", PhotonTargets.All);
+        }
+        else if (Input.GetKeyDown(KeyCode.Q))
+        {
+            myPhotonView.RPC("DoWave", PhotonTargets.All);
         }
 
         // Mouse stuff
@@ -93,7 +103,7 @@ public class CharacterControls : MonoBehaviour {
         if (newCameraRotX > 90.0f && newCameraRotX < 180.0f)
             newCameraRotX = 90.0f;
         if (newCameraRotX < 270.0f && newCameraRotX > 180.0f)
-            newCameraRotX = 270.0f; 
+            newCameraRotX = 270.0f;
         float newCameraRotY = cameraTransform.rotation.eulerAngles.y + mouseChange.x * MouseSensitivity * Time.deltaTime;
         cameraTransform.rotation = Quaternion.Euler(newCameraRotX, newCameraRotY, cameraTransform.rotation.eulerAngles.z);
 
@@ -238,30 +248,27 @@ public class CharacterControls : MonoBehaviour {
 
         // Update jetpack UI
         _UI.SetJetBar(jetpackFuel / MaxJetpackFuel);
+    }
 
-        // Wave/punch
-        if (Input.GetKeyDown(KeyCode.E))
+    [PunRPC]
+    public void DoPunch()
+    {
+        // Use energy, give boost
+        jetpackFuel = Mathf.Max(jetpackFuel - PunchEnergy, 0f);
+        if (jetpackFuel != 0f && Physics.Raycast(transform.position, cameraTransform.forward, 3f))
         {
-            // Use energy, give boost
-            jetpackFuel = Mathf.Max(jetpackFuel - PunchEnergy, 0f);
-            if (jetpackFuel != 0f && Physics.Raycast(transform.position, cameraTransform.forward, 3f))
-            {
-                punchGroundSound.Play();
-                rigidbody.AddExplosionForce(PunchBoostForce, transform.position + cameraTransform.forward * 5, 100f);
-            }
+            punchGroundSound.Play();
+            rigidbody.AddExplosionForce(PunchBoostForce, transform.position + cameraTransform.forward * 5, 100f);
+        }
 
-            animator.SetBool("DoPunch", true);
-            animator.SetBool("DoWave", false);
-        }
-        else if (Input.GetKeyDown(KeyCode.Q))
-        {
-            animator.SetBool("DoWave", true);
-            animator.SetBool("DoPunch", false);
-        }
-        else
-        {
-            animator.SetBool("DoWave", false);
-            animator.SetBool("DoPunch", false);
-        }
+        animator.SetBool("DoPunch", true);
+        animator.SetBool("DoWave", false);
+    }
+
+    [PunRPC]
+    public void DoWave()
+    {
+        animator.SetBool("DoWave", true);
+        animator.SetBool("DoPunch", false);
     }
 }
