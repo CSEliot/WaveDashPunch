@@ -22,6 +22,7 @@ public class CharacterControls : MonoBehaviour {
     private new Transform transform;
     private new Rigidbody rigidbody;
     private new CapsuleCollider collider;
+    private Animator animator;
 
     // Use this for initialization
     void Start ()
@@ -35,6 +36,7 @@ public class CharacterControls : MonoBehaviour {
         cameraTransform = transform.GetChild(0).GetComponent<Transform>();
         rigidbody = GetComponent<Rigidbody>();
         collider = GetComponent<CapsuleCollider>();
+        animator = GetComponent<Animator>();
     }
 	
 	// Update is called once per frame
@@ -163,5 +165,22 @@ public class CharacterControls : MonoBehaviour {
             jetpackFuel = 0.0f;
         else if (jetpackFuel > MaxJetpackFuel)
             jetpackFuel = MaxJetpackFuel;
+
+        // Wave/punch
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            animator.SetBool("DoPunch", true);
+            animator.SetBool("DoWave", false);
+        }
+        else if (Input.GetKeyDown(KeyCode.Q))
+        {
+            animator.SetBool("DoWave", true);
+            animator.SetBool("DoPunch", false);
+        }
+        else
+        {
+            animator.SetBool("DoWave", false);
+            animator.SetBool("DoPunch", false);
+        }
     }
 }
