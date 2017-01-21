@@ -25,16 +25,11 @@ public class CharacterControls : MonoBehaviour {
     private float jetpackFuel;
     private bool canJetpack;
 
-    private Transform cameraTransform;
-    private new Transform transform;
+    public Transform cameraTransform;
     private new Rigidbody rigidbody;
     private new CapsuleCollider collider;
-    private BoxCollider hitTrigger;
+    public BoxCollider hitTrigger;
     private Animator animator;
-
-    private GameObject ui;
-    private RectTransform jetpackBar;
-    private RectTransform healthBar;
 
     // Use this for initialization
     void Start ()
@@ -44,20 +39,11 @@ public class CharacterControls : MonoBehaviour {
 
         jetpackFuel = MaxJetpackFuel;
         canJetpack = true;
-
-        transform = GetComponent<Transform>();
-        cameraTransform = transform.GetChild(0).GetComponent<Transform>();
+        
         rigidbody = GetComponent<Rigidbody>();
         collider = GetComponent<CapsuleCollider>();
         hitTrigger = transform.GetChild(0).GetChild(2).GetComponent<BoxCollider>();
         animator = GetComponent<Animator>();
-
-        ui = GameObject.FindGameObjectWithTag("UI");
-        if (ui != null)
-        {
-            jetpackBar = ui.transform.GetChild(0).GetChild(0).GetComponent<RectTransform>();
-            healthBar = ui.transform.GetChild(1).GetChild(0).GetComponent<RectTransform>();
-        }
     }
 	
 	// Update is called once per frame
@@ -199,7 +185,7 @@ public class CharacterControls : MonoBehaviour {
             jetpackFuel = MaxJetpackFuel;
 
         // Update jetpack UI
-        jetpackBar.localScale = new Vector3(jetpackFuel / MaxJetpackFuel, 1f, 1f);
+        _UI.SetJetBar(jetpackFuel / MaxJetpackFuel);
 
         // Wave/punch
         if (Input.GetKeyDown(KeyCode.E))
