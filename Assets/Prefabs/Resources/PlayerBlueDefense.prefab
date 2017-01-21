@@ -499,8 +499,9 @@ MonoBehaviour:
   Health: 100
   PunchEnergy: 20
   PunchBoostForce: 1000
-  cameraTransform: {fileID: 0}
-  hitTrigger: {fileID: 0}
+  cameraTransform: {fileID: 4164658070363748}
+  hitTrigger: {fileID: 65726751455519370}
+  myPhotonView: {fileID: 114312300061237254}
 --- !u!124 &124142714879257042
 Behaviour:
   m_ObjectHideFlags: 1
