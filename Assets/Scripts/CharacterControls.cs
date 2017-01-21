@@ -31,11 +31,23 @@ public class CharacterControls : MonoBehaviour {
     public BoxCollider hitTrigger;
     private Animator animator;
 
+    public PhotonView myPhotonView;
+
     // Use this for initialization
     void Start ()
     {
+
+
+
+        if (!myPhotonView.isMine)
+            return;
+        else
+        {
+            Debug.Log("My photon view, I am: " + myPhotonView.viewID);
+        }
+
         Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        //Cursor.visible = false;
 
         jetpackFuel = MaxJetpackFuel;
         canJetpack = true;
@@ -49,6 +61,13 @@ public class CharacterControls : MonoBehaviour {
 	// Update is called once per frame
 	void Update ()
     {
+        if (!myPhotonView.isMine)
+            return;
+        else
+        {
+            Debug.Log("My photon view, I am: " + myPhotonView.viewID);
+        }
+
         // Mouse stuff
         Vector2 mouseChange = Vector2.zero;
         mouseChange.x = Input.GetAxis("Mouse X");
