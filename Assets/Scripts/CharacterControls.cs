@@ -31,14 +31,15 @@ public class CharacterControls : MonoBehaviour {
     public BoxCollider hitTrigger;
     private Animator animator;
 
+    private AudioSource jetpackStartSound, jetpackLoopSound;
+    private AudioSource punchSound, punchGroundSound;
+    private AudioSource dieSound;
+
     public PhotonView myPhotonView;
 
     // Use this for initialization
     void Start ()
     {
-
-
-
         if (!myPhotonView.isMine)
             return;
         else
@@ -48,6 +49,16 @@ public class CharacterControls : MonoBehaviour {
 
         Cursor.lockState = CursorLockMode.Locked;
         //Cursor.visible = false;
+
+        AudioSource[] sources = GetComponents<AudioSource>();
+        foreach (AudioSource a in sources)
+        {
+            if (a.name == "jetpack_start") jetpackStartSound = a;
+            else if (a.name == "jetpack_loop") jetpackLoopSound = a;
+            else if (a.name == "punch") punchSound = a;
+            else if (a.name == "punch_ground") punchGroundSound = a;
+            else if (a.name == "die") dieSound= a;
+        }
 
         jetpackFuel = MaxJetpackFuel;
         canJetpack = true;
@@ -169,9 +180,22 @@ public class CharacterControls : MonoBehaviour {
 
         // Jumping/jetpacking
         if (Input.GetMouseButtonDown(1))
+        {
+            // Start playing jetpack sounds
+            jetpackLoopSound.volume = 0f;
+            jetpackStartSound.volume = 1f;
+            jetpackStartSound.Play();
+            jetpackLoopSound.loop = true;
+            jetpackLoopSound.Play();
+
             canJetpack = true;
+        }
         if (Input.GetMouseButton(1))
         {
+            // Transition into more seemless loop from initial burst
+            jetpackLoopSound.volume = Mathf.Min(1f, jetpackLoopSound.volume + 0.5f * Time.deltaTime);
+            jetpackStartSound.volume = Mathf.Max(0f, jetpackLoopSound.volume + 0.5f * Time.deltaTime);
+
             if (onGround)
                 rigidbody.AddExplosionForce(JumpPower, transform.position + Vector3.down * 3.0f, 10.0f);
             if (jetpackFuel > MinJetpackFuel)
@@ -212,7 +236,10 @@ public class CharacterControls : MonoBehaviour {
             // Use energy, give boost
             jetpackFuel = Mathf.Max(jetpackFuel - PunchEnergy, 0f);
             if (jetpackFuel != 0f && Physics.Raycast(transform.position, cameraTransform.forward, 3f))
+            {
+                punchGroundSound.Play();
                 rigidbody.AddExplosionForce(PunchBoostForce, transform.position + cameraTransform.forward * 5, 100f);
+            }
 
             animator.SetBool("DoPunch", true);
             animator.SetBool("DoWave", false);
