@@ -243,15 +243,18 @@ public class CharacterControls : MonoBehaviour {
         if (Input.GetKeyDown(KeyCode.E))
         {
             // Use energy, give boost
-            jetpackFuel = Mathf.Max(jetpackFuel - PunchEnergy, 0f);
-            if (jetpackFuel != 0f && Physics.Raycast(transform.position, cameraTransform.forward, 3f))
+            if (jetpackFuel - PunchEnergy >= 0f)
             {
-                punchGroundSound.Play();
-                rigidbody.AddExplosionForce(PunchBoostForce, transform.position + cameraTransform.forward * 5, 100f);
-            }
+                animator.SetBool("DoPunch", true);
+                animator.SetBool("DoWave", false);
+                jetpackFuel = Mathf.Max(jetpackFuel - PunchEnergy, 0f);
 
-            animator.SetBool("DoPunch", true);
-            animator.SetBool("DoWave", false);
+                if (Physics.Raycast(transform.position, cameraTransform.forward, 3f))
+                {
+                    punchGroundSound.Play();
+                    rigidbody.AddExplosionForce(PunchBoostForce, transform.position + cameraTransform.forward * 5, 100f);
+                }
+            }
         }
         else if (Input.GetKeyDown(KeyCode.Q))
         {
