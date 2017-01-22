@@ -29,7 +29,7 @@ public class Step1_Connect : Photon.MonoBehaviour
             Debug.Log("Update() was called by Unity. Scene is loaded. Let's connect to the Photon Master Server. Calling: PhotonNetwork.ConnectUsingSettings();");
 
             ConnectInUpdate = false;
-            PhotonNetwork.ConnectUsingSettings("WaveDashRun_v" + Application.version);
+            PhotonNetwork.ConnectUsingSettings("WaveDashRun_v" + GameVersion.Get());
         }
     }
 

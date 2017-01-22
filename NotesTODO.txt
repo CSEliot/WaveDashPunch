@@ -2,3 +2,8 @@ TODO:
 
 Apply your velocity to someone when you punch them
 Attacks/Offensive should be attacker authoratative
+
+Speed Player:
+ + 1 Punch
+ + 3 Speed
+ + 1 Armor

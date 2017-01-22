@@ -31,6 +31,7 @@ public class Step3_SpawnAndJoin : MonoBehaviour {
 
     void OnJoinedRoom()
     {
+        CBUG.Do("Joined Room!!");
         CreatePlayerObject();
     }
 
@@ -44,6 +45,11 @@ public class Step3_SpawnAndJoin : MonoBehaviour {
         Players.Add(newPlayerObject);
 
         UICharSelectPanel.SetActive(false);
+    }
+
+    public static void _SpawnPlayer()
+    {
+        GameObject.FindGameObjectWithTag("NETWORK").GetComponent<Step3_SpawnAndJoin>().CreatePlayerObject();
     }
 
 
