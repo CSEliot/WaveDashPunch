@@ -6,6 +6,9 @@ using UnityEngine.UI;
 public class CharacterControls : MonoBehaviour
 {
 
+    private float survivalTime;
+    private float respawnTime;
+
     public float MouseSensitivity = 50.0f;
     public float MaxRunSpeed = 10.0f;
     public float RunAcceleration = 50.0f;
@@ -41,16 +44,38 @@ public class CharacterControls : MonoBehaviour
 
     public CharacterControls punchTarget;
     public CharacterControls waveTarget;
+
+    public int RespawnYLimit;
+
+
+    public float MinPeaceTime;
+    private float previousPunchTime;
+    private bool direSituation;
+
+    private bool isDead;
+
+    public GameObject ArmLeft, ArmRight, FakeBody;
+
+    public float punchCooldown;
+    private float lastPunchTime;
     
     // Use this for initialization
     void Start()
     {
+        survivalTime = 0;
+        respawnTime = 0;
+        isDead = false;
+
         if (!myPhotonView.isMine)
         {
             cameraTransform.GetComponent<Camera>().enabled = false;//gameObject.SetActive(false);
+            cameraTransform.GetComponent<AudioListener>().enabled = false;
         }
         else
         {
+            GameObject.FindGameObjectWithTag("MUSIC").GetComponent<MusicManager>().MusicBox1 = transform.GetChild(0).GetChild(4).GetComponent<AudioSource>();
+            GameObject.FindGameObjectWithTag("MUSIC").GetComponent<MusicManager>().MusicBox2 = transform.GetChild(0).GetChild(5).GetComponent<AudioSource>();
+            MusicManager._SwitchTo(0);
             Debug.Log("My photon view, I am: " + myPhotonView.viewID);
         }
 
@@ -78,14 +103,32 @@ public class CharacterControls : MonoBehaviour
         if (!myPhotonView.isMine)
             return;
 
-        // Wave/punch
-        if (Input.GetKeyDown(KeyCode.E))
+        if (direSituation)
         {
-            myPhotonView.RPC("DoPunch", PhotonTargets.All);
+            if (Time.time - previousPunchTime > MinPeaceTime)
+            {
+                direSituation = false;
+                MusicManager._SwitchTo(0);
+            }
         }
-        else if (Input.GetKeyDown(KeyCode.Q))
+
+        // Wave/punch
+        if (Input.GetButtonDown("Punch") && Time.time - previousPunchTime > punchCooldown)
         {
-            myPhotonView.RPC("DoWave", PhotonTargets.All);
+            previousPunchTime = Time.time;
+            //_Help.FirstTimePunched();
+            myPhotonView.RPC("DoPunch", PhotonTargets.Others);
+            DoPunchLocal();
+        }
+        else if (Input.GetButtonDown("Wave"))
+        {
+            //_Help.FirstTimeWaved();
+            // Use energy, give boost
+            if (jetpackFuel - PunchEnergy >= 0f)
+            {
+                myPhotonView.RPC("DoWave", PhotonTargets.Others);
+                DoWaveLocal();
+            }
         }
 
         // Mouse stuff
@@ -104,6 +147,11 @@ public class CharacterControls : MonoBehaviour
 
         // Check if on ground
         bool onGround = Physics.Raycast(transform.position + Vector3.down * 0.9f, Vector3.down, 0.5f);
+        // Check if underground
+        if(transform.position.y < RespawnYLimit && !isDead)
+        {
+            die();
+        }
 
         // Speed calculations
         Vector3 forward = cameraTransform.forward;
@@ -142,7 +190,7 @@ public class CharacterControls : MonoBehaviour
         inputDir.Normalize();
 
         // Movement
-        bool skiing = Input.GetKey(KeyCode.LeftShift);
+        bool skiing = Input.GetButton("Ski");
         collider.sharedMaterial.dynamicFriction = 0f;
         collider.sharedMaterial.staticFriction = 0f;
         if (!onGround || skiing)
@@ -188,7 +236,7 @@ public class CharacterControls : MonoBehaviour
         }
 
         // Jumping/jetpacking
-        if (Input.GetMouseButtonDown(1))
+        if (Input.GetButtonDown("Fire2"))
         {
             // Start playing jetpack sounds
             jetpackLoopSound.volume = 0f;
@@ -201,7 +249,7 @@ public class CharacterControls : MonoBehaviour
         }
 
         jetpackStartSound.volume = Mathf.Max(0f, jetpackStartSound.volume - 2f * Time.deltaTime);
-        if (Input.GetMouseButton(1))
+        if (Input.GetButton("Fire2"))
         {
             // Transition into more seemless loop from initial burst
             jetpackLoopSound.volume = Mathf.Min(1f, jetpackLoopSound.volume + 0.5f * Time.deltaTime);
@@ -239,10 +287,10 @@ public class CharacterControls : MonoBehaviour
             jetpackFuel = MaxJetpackFuel;
 
         // Die if health is gone
-        if (Health <= 0f)
+        //Dead, Death
+        if (!isDead && (Health <= 0f || Input.GetButtonDown("Suicide")))
         {
-            dieSound.Play();
-            Destroy(this.gameObject);
+            die();
         }
 
         // Update jetpack UI
@@ -250,26 +298,60 @@ public class CharacterControls : MonoBehaviour
         _UI.SetHPBar(Health / 100f);
     }
 
+    private void localDie()
+    {
+        _Help.ToggleDeathPanel();
+        PhotonNetwork.Destroy(myPhotonView);
+    }
+
+    [PunRPC]
+    private void netDie()
+    {
+        CBUG.Do("DIED!");
+        dieSound.Play();
+        isDead = true;
+        ArmLeft.transform.SetParent(null);
+        ArmLeft.GetComponent<Rigidbody>().isKinematic = false;
+        ArmLeft.GetComponent<BoxCollider>().isTrigger = false;
+        ArmRight.transform.SetParent(null);
+        ArmRight.GetComponent<BoxCollider>().isTrigger = false;
+        ArmRight.GetComponent<Rigidbody>().isKinematic = false;
+        FakeBody.transform.SetParent(null);
+        FakeBody.SetActive(true);
+    }
+
+    private void die()
+    {
+        myPhotonView.RPC("netDie", PhotonTargets.All);
+        localDie();
+    }
+
     [PunRPC]
     public void DoPunch()
     {
-        // Use energy, give boost
-        if (jetpackFuel - PunchEnergy >= 0f)
+        animator.SetTrigger("DoPunch");
+        if (Physics.Raycast(transform.position, cameraTransform.forward, 3f))
         {
-            animator.SetTrigger("DoPunch");
-            jetpackFuel = Mathf.Max(jetpackFuel - PunchEnergy, 0f);
-            if (jetpackFuel != 0f && Physics.Raycast(transform.position, cameraTransform.forward, 3f))
-            { 
-                if (Physics.Raycast(transform.position, cameraTransform.forward, 3f))
-                {
-                    punchGroundSound.Play();
-                    rigidbody.AddExplosionForce(PunchBoostForce, transform.position + cameraTransform.forward * 5, 100f);
-                    if (punchTarget != null)
-                    {
-                        punchTarget.rigidbody.AddExplosionForce(PunchBoostForce, punchTarget.rigidbody.position + punchTarget.cameraTransform.forward * 5, 100f);
-                        punchTarget.Health -= PunchDamage;
-                    }
-                }
+            punchGroundSound.Play();
+            if (punchTarget != null)
+            {
+                punchTarget.rigidbody.AddExplosionForce(PunchBoostForce, punchTarget.rigidbody.position + punchTarget.cameraTransform.forward * 5, 100f);
+                punchTarget.ModHealth(-PunchDamage);
+                MusicManager._SwitchTo(1);
+            }
+        }
+    }
+
+    public void DoPunchLocal()
+    {
+        animator.SetTrigger("DoPunch");
+        jetpackFuel = Mathf.Max(jetpackFuel - PunchEnergy, 0f);
+        if (jetpackFuel != 0f && Physics.Raycast(transform.position, cameraTransform.forward, 3f))
+        {
+            if (Physics.Raycast(transform.position, cameraTransform.forward, 3f))
+            {
+                punchGroundSound.Play();
+                rigidbody.AddExplosionForce(PunchBoostForce, transform.position + cameraTransform.forward * 5, 100f);
             }
         }
     }
@@ -281,6 +363,46 @@ public class CharacterControls : MonoBehaviour
         if (waveTarget != null)
         {
             waveTarget.Health = 100f;
+        }
+    }
+
+    public void DoWaveLocal()
+    {
+        animator.SetTrigger("DoWave");
+        if (waveTarget != null)
+        {
+            waveTarget.Health = 100f;
+        }
+    }
+
+    //private void respawn()
+    //{
+    //    Step3_SpawnAndJoin._SpawnPlayer();
+
+    //    //transform.position = GameObject.FindGameObjectWithTag("RESPAWN").transform.position;
+    //    //transform.rotation = GameObject.FindGameObjectWithTag("RESPAWN").transform.rotation;
+
+    //    //rigidbody.isKinematic = true;
+    //    //StartCoroutine(_unKinematic());
+    //}
+
+    /// <summary>
+    /// Single frame delay on unKinematicing
+    /// </summary>
+    /// <returns></returns>
+    private IEnumerator _unKinematic()
+    {
+        yield return null;
+        rigidbody.isKinematic = false;
+    }
+
+    public void ModHealth(float HPChange)
+    {
+        Health += HPChange;
+        if(HPChange < 0)
+        {
+            previousPunchTime = Time.time;
+            direSituation = true;
         }
     }
 }

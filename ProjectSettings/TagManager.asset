@@ -8,6 +8,12 @@ TagManager:
   - Fire
   - UI
   - PlayerTrigger
+  - Help
+  - Version
+  - CBUG
+  - RESPAWN
+  - MUSIC
+  - NETWORK
   layers:
   - Default
   - TransparentFX
