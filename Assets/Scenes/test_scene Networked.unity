@@ -189,44 +189,12 @@ Prefab:
       propertyPath: m_Pivot.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1627874739316308, guid: f5224ead9331d954794541353636e9c7, type: 2}
-      propertyPath: m_Name
-      value: PlayerUI
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: f5224ead9331d954794541353636e9c7, type: 2}
   m_IsPrefabParent: 0
---- !u!1 &212599737 stripped
-GameObject:
-  m_PrefabParentObject: {fileID: 1627874739316308, guid: f5224ead9331d954794541353636e9c7,
-    type: 2}
-  m_PrefabInternal: {fileID: 212599736}
---- !u!114 &212599739
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 212599737}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e25b4626eed963c40b11315e8048f11d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  jetpackBar: {fileID: 212599742}
-  healthBar: {fileID: 212599741}
 --- !u!1 &212599740 stripped
 GameObject:
   m_PrefabParentObject: {fileID: 1097856821916922, guid: f5224ead9331d954794541353636e9c7,
-    type: 2}
-  m_PrefabInternal: {fileID: 212599736}
---- !u!224 &212599741 stripped
-RectTransform:
-  m_PrefabParentObject: {fileID: 224271755406120358, guid: f5224ead9331d954794541353636e9c7,
-    type: 2}
-  m_PrefabInternal: {fileID: 212599736}
---- !u!224 &212599742 stripped
-RectTransform:
-  m_PrefabParentObject: {fileID: 224521615551623110, guid: f5224ead9331d954794541353636e9c7,
     type: 2}
   m_PrefabInternal: {fileID: 212599736}
 --- !u!1 &930678188

@@ -177,6 +177,7 @@ GameObject:
   - component: {fileID: 114075179684377888}
   - component: {fileID: 114987387170792266}
   - component: {fileID: 114790652445765632}
+  - component: {fileID: 114862975955507804}
   m_Layer: 5
   m_Name: PlayerUI
   m_TagString: UI
@@ -707,6 +708,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3365b5f6c16864d4eb85aad33c370b86, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &114862975955507804
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1627874739316308}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e25b4626eed963c40b11315e8048f11d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  jetpackBar: {fileID: 224521615551623110}
+  healthBar: {fileID: 224271755406120358}
 --- !u!114 &114889341682759894
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -905,8 +919,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -0.5}
-  m_SizeDelta: {x: 0, y: -1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!224 &224286820087879010
 RectTransform:
