@@ -238,6 +238,13 @@ public class CharacterControls : MonoBehaviour
         else if (jetpackFuel > MaxJetpackFuel)
             jetpackFuel = MaxJetpackFuel;
 
+        // Die if health is gone
+        if (Health <= 0f)
+        {
+            dieSound.Play();
+            Destroy(this.gameObject);
+        }
+
         // Update jetpack UI
         _UI.SetJetBar(jetpackFuel / MaxJetpackFuel);
         _UI.SetHPBar(Health / 100f);
