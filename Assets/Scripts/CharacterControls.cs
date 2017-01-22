@@ -21,6 +21,7 @@ public class CharacterControls : MonoBehaviour
     public float Health = 100f;
 
     public float PunchEnergy = 20f;
+    public float PunchDamage = 25f;
     public float PunchBoostForce = 100f;
 
     private float jetpackFuel;
@@ -37,6 +38,9 @@ public class CharacterControls : MonoBehaviour
     private AudioSource dieSound;
 
     public PhotonView myPhotonView;
+
+    public CharacterControls punchTarget;
+    public CharacterControls waveTarget;
     
     // Use this for initialization
     void Start()
@@ -236,6 +240,7 @@ public class CharacterControls : MonoBehaviour
 
         // Update jetpack UI
         _UI.SetJetBar(jetpackFuel / MaxJetpackFuel);
+        _UI.SetHPBar(Health / 100f);
     }
 
     [PunRPC]
@@ -252,6 +257,11 @@ public class CharacterControls : MonoBehaviour
                 {
                     punchGroundSound.Play();
                     rigidbody.AddExplosionForce(PunchBoostForce, transform.position + cameraTransform.forward * 5, 100f);
+                    if (punchTarget != null)
+                    {
+                        punchTarget.rigidbody.AddExplosionForce(PunchBoostForce, punchTarget.rigidbody.position + punchTarget.cameraTransform.forward * 5, 100f);
+                        punchTarget.Health -= PunchDamage;
+                    }
                 }
             }
         }
@@ -261,5 +271,9 @@ public class CharacterControls : MonoBehaviour
     public void DoWave()
     {
         animator.SetTrigger("DoWave");
+        if (waveTarget != null)
+        {
+            waveTarget.Health = 100f;
+        }
     }
 }
