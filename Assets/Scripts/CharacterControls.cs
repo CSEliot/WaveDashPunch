@@ -31,6 +31,7 @@ public class CharacterControls : MonoBehaviour
     private bool canJetpack;
 
     public Transform cameraTransform;
+    public Transform armsTransform;
     public Rigidbody rigidbody;
     public CapsuleCollider collider;
     public BoxCollider hitTrigger;
@@ -54,11 +55,14 @@ public class CharacterControls : MonoBehaviour
 
     private bool isDead;
 
-    public GameObject ArmLeft, ArmRight, FakeBody;
+    public GameObject ArmLeft, ArmRight, Body, FakeBody, ArmCamLeft, ArmCamRight;
 
     public float punchCooldown;
     private float lastPunchTime;
-    
+
+    public GameObject MusicBox1;
+    public GameObject MusicBox2;
+
     // Use this for initialization
     void Start()
     {
@@ -70,13 +74,18 @@ public class CharacterControls : MonoBehaviour
         {
             cameraTransform.GetComponent<Camera>().enabled = false;//gameObject.SetActive(false);
             cameraTransform.GetComponent<AudioListener>().enabled = false;
+            ArmCamLeft.GetComponent<MeshRenderer>().enabled = false;
+            ArmCamLeft.GetComponent<MeshRenderer>().enabled = false;
         }
         else
         {
-            GameObject.FindGameObjectWithTag("MUSIC").GetComponent<MusicManager>().MusicBox1 = transform.GetChild(0).GetChild(4).GetComponent<AudioSource>();
-            GameObject.FindGameObjectWithTag("MUSIC").GetComponent<MusicManager>().MusicBox2 = transform.GetChild(0).GetChild(5).GetComponent<AudioSource>();
+            GameObject.FindGameObjectWithTag("MUSIC").GetComponent<MusicManager>().MusicBox1 = MusicBox1.GetComponent<AudioSource>();
+            GameObject.FindGameObjectWithTag("MUSIC").GetComponent<MusicManager>().MusicBox2 = MusicBox2.GetComponent<AudioSource>();
             MusicManager._SwitchTo(0);
             Debug.Log("My photon view, I am: " + myPhotonView.viewID);
+            ArmLeft.GetComponentInChildren<MeshRenderer>().enabled = false;
+            ArmRight.GetComponent<MeshRenderer>().enabled = false;
+            Body.GetComponent<MeshRenderer>().enabled = false;
         }
 
         
@@ -84,7 +93,7 @@ public class CharacterControls : MonoBehaviour
         jetpackFuel = MaxJetpackFuel;
         canJetpack = true;
 
-        AudioSource[] sources = cameraTransform.GetComponents<AudioSource>();
+        AudioSource[] sources = armsTransform.GetComponents<AudioSource>();
         foreach (AudioSource a in sources)
         {
             Debug.Log(a.clip.name);
@@ -144,6 +153,14 @@ public class CharacterControls : MonoBehaviour
             newCameraRotX = 270.0f;
         float newCameraRotY = cameraTransform.rotation.eulerAngles.y + mouseChange.x * MouseSensitivity * Time.deltaTime;
         cameraTransform.rotation = Quaternion.Euler(newCameraRotX, newCameraRotY, cameraTransform.rotation.eulerAngles.z);
+
+        newCameraRotX = armsTransform.rotation.eulerAngles.x - mouseChange.y * MouseSensitivity * Time.deltaTime;
+        if (newCameraRotX > 90.0f && newCameraRotX < 180.0f)
+            newCameraRotX = 90.0f;
+        if (newCameraRotX < 270.0f && newCameraRotX > 180.0f)
+            newCameraRotX = 270.0f;
+        newCameraRotY = armsTransform.rotation.eulerAngles.y + mouseChange.x * MouseSensitivity * Time.deltaTime;
+        armsTransform.rotation = Quaternion.Euler(newCameraRotX, newCameraRotY, armsTransform.rotation.eulerAngles.z);
 
         // Check if on ground
         bool onGround = Physics.Raycast(transform.position + Vector3.down * 0.9f, Vector3.down, 0.5f);
