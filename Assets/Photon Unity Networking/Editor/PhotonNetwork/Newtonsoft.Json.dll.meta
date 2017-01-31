@@ -1,7 +1,10 @@
 fileFormatVersion: 2
-guid: bffe5009f9bbcbd48847cafa4e386121
-timeCreated: 1484976032
-licenseType: Free
+guid: 0268f98d7c649564a818b0768fc68d4b
+labels:
+- ExitGames
+- PUN
+- Photon
+- Networking
 PluginImporter:
   serializedVersion: 1
   iconMap: {}

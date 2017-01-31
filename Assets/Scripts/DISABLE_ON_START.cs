@@ -9,7 +9,8 @@ public class DISABLE_ON_START : MonoBehaviour {
     // Use this for initialization
     void Start () {
 
-        gameObject.SetActive(false);
+        if(!DontDisableThis)
+            gameObject.SetActive(false);
 
 	}
 	

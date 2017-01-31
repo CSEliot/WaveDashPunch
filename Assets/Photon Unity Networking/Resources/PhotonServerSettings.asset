@@ -46,4 +46,5 @@ MonoBehaviour:
   - DoPunch
   - DoWave
   - netDie
+  - ReceiveWave
   DisableAutoOpenWizard: 1

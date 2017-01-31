@@ -7,13 +7,15 @@ public class HitTrigger : MonoBehaviour {
 
     void OnTriggerEnter(Collider collider)
     {
-        if (!collider.CompareTag("PlayerTrigger") && collider.gameObject.CompareTag("Player") && collider.gameObject.GetComponent<CharacterControls>() != parent)
-            parent.punchTarget = collider.gameObject.GetComponent<CharacterControls>();
+        if (!collider.CompareTag("PlayerTrigger") && collider.tag.Contains("Player") && collider.gameObject.GetComponent<CharacterControls>() != parent)
+            parent.punchTargets.Add(collider.gameObject.GetComponent<CharacterControls>());
+        CBUG.Do("TriggerEnter: " + collider.name);
     }
 
-    void OnTriggerLeave(Collider collider)
+    void OnTriggerExit(Collider collider)
     {
-        if (!collider.CompareTag("PlayerTrigger") && collider.gameObject.CompareTag("Player") && collider.gameObject.GetComponent<CharacterControls>() != parent)
-            parent.punchTarget = null;
+        if (!collider.CompareTag("PlayerTrigger") && collider.tag.Contains("Player") && collider.gameObject.GetComponent<CharacterControls>() != parent)
+            parent.punchTargets.Remove(collider.gameObject.GetComponent<CharacterControls>());
+        CBUG.Do("TriggerExit: " + collider.name);
     }
 }

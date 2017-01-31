@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-public class Step3_SpawnAndJoin : MonoBehaviour {
+public class Step3_SpawnAndJoin : MonoBehaviour
+{
 
     #region Public Sets
     public string[] SpawnOBJNames;
@@ -18,24 +19,25 @@ public class Step3_SpawnAndJoin : MonoBehaviour {
 
 
 
-	// Use this for initialization
-	void Start () {
+    // Use this for initialization
+    void Start()
+    {
         Players = new List<GameObject>();
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+
+    }
 
 
     void OnJoinedRoom()
     {
         CBUG.Do("Joined Room!!");
-        CreatePlayerObject();
     }
 
-    void CreatePlayerObject()
+    public void CreatePlayerObject()
     {
 
         Debug.Log("Spawning Player!");

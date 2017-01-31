@@ -43,8 +43,7 @@ public class CharacterControls : MonoBehaviour
 
     public PhotonView myPhotonView;
 
-    public CharacterControls punchTarget;
-    public CharacterControls waveTarget;
+    public List<CharacterControls> punchTargets;
 
     public int RespawnYLimit;
 
@@ -55,7 +54,7 @@ public class CharacterControls : MonoBehaviour
 
     private bool isDead;
 
-    public GameObject ArmLeft, ArmRight, Body, FakeBody, ArmCamLeft, ArmCamRight;
+    public GameObject ArmLeft, ArmRight, Body, ArmCamLeft, ArmCamRight, Head;
 
     public float punchCooldown;
     private float lastPunchTime;
@@ -63,19 +62,43 @@ public class CharacterControls : MonoBehaviour
     public GameObject MusicBox1;
     public GameObject MusicBox2;
 
+    public List<PhotonView> WaveCandidates;
+    public List<int> WaveRecieved;
+    public List<int> WaveSent;
+
+    private List<int> enemyIDs;
+    public List<int> FriendIDs;
+
+    public GameObject FriendIcon;
+    public GameObject EnemyIcon;
+
+    private float previousYrot;
+
+    private bool onGround;
+
     // Use this for initialization
     void Start()
     {
+        //TODO: Fix sync issues. Removed arm, head, and body rigidbodies as a test. 
+        //It was in fact all the rigidodies -____-
+        onGround = false;
+
+        punchTargets = new List<CharacterControls>();
+        WaveCandidates = new List<PhotonView>();
+        WaveRecieved = new List<int>();
+
         survivalTime = 0;
         respawnTime = 0;
         isDead = false;
+        
 
         if (!myPhotonView.isMine)
         {
             cameraTransform.GetComponent<Camera>().enabled = false;//gameObject.SetActive(false);
             cameraTransform.GetComponent<AudioListener>().enabled = false;
-            ArmCamLeft.GetComponent<MeshRenderer>().enabled = false;
-            ArmCamLeft.GetComponent<MeshRenderer>().enabled = false;
+            ArmCamLeft.SetActive(false);
+            ArmCamRight.SetActive(false);
+            gameObject.tag = "iPC";
         }
         else
         {
@@ -83,9 +106,11 @@ public class CharacterControls : MonoBehaviour
             GameObject.FindGameObjectWithTag("MUSIC").GetComponent<MusicManager>().MusicBox2 = MusicBox2.GetComponent<AudioSource>();
             MusicManager._SwitchTo(0);
             Debug.Log("My photon view, I am: " + myPhotonView.viewID);
-            ArmLeft.GetComponentInChildren<MeshRenderer>().enabled = false;
-            ArmRight.GetComponent<MeshRenderer>().enabled = false;
-            Body.GetComponent<MeshRenderer>().enabled = false;
+            ArmLeft.SetActive(false);
+            ArmRight.SetActive(false);
+            Body.SetActive(false);
+            Head.SetActive(false);
+            gameObject.tag = "PC";
         }
 
         
@@ -102,8 +127,13 @@ public class CharacterControls : MonoBehaviour
             else if (a.clip.name == "punch") punchSound = a;
             else if (a.clip.name == "punch_ground") punchGroundSound = a;
             else if (a.clip.name == "die") dieSound = a;
-        }
-        
+        }   
+    }
+
+
+    private void FixedUpdate()
+    {
+        previousYrot = transform.rotation.eulerAngles.y;
     }
 
     // Update is called once per frame
@@ -112,22 +142,19 @@ public class CharacterControls : MonoBehaviour
         if (!myPhotonView.isMine)
             return;
 
+
         if (direSituation)
         {
             if (Time.time - previousPunchTime > MinPeaceTime)
             {
-                direSituation = false;
-                MusicManager._SwitchTo(0);
+                safeSituationActivate();
             }
         }
 
         // Wave/punch
         if (Input.GetButtonDown("Punch") && Time.time - previousPunchTime > punchCooldown)
         {
-            previousPunchTime = Time.time;
-            //_Help.FirstTimePunched();
-            myPhotonView.RPC("DoPunch", PhotonTargets.Others);
-            DoPunchLocal();
+            myPhotonView.RPC("DoPunch", PhotonTargets.All);
         }
         else if (Input.GetButtonDown("Wave"))
         {
@@ -135,12 +162,18 @@ public class CharacterControls : MonoBehaviour
             // Use energy, give boost
             if (jetpackFuel - PunchEnergy >= 0f)
             {
-                myPhotonView.RPC("DoWave", PhotonTargets.Others);
-                DoWaveLocal();
+                if(WaveCandidates.Count > 0)
+                {
+                    for(int x = 0; x < WaveCandidates.Count; x++)
+                    {
+                        //WaveCandidates[x].RPC()
+                    }
+                }
+                myPhotonView.RPC("DoWave", PhotonTargets.All);
             }
         }
 
-        // Mouse stuff
+        #region Mouse stuff
         Vector2 mouseChange = Vector2.zero;
         mouseChange.x = Input.GetAxis("Mouse X");
         mouseChange.y = Input.GetAxis("Mouse Y");
@@ -161,9 +194,18 @@ public class CharacterControls : MonoBehaviour
             newCameraRotX = 270.0f;
         newCameraRotY = armsTransform.rotation.eulerAngles.y + mouseChange.x * MouseSensitivity * Time.deltaTime;
         armsTransform.rotation = Quaternion.Euler(newCameraRotX, newCameraRotY, armsTransform.rotation.eulerAngles.z);
+        #endregion
 
         // Check if on ground
-        bool onGround = Physics.Raycast(transform.position + Vector3.down * 0.9f, Vector3.down, 0.5f);
+        if (!onGround && Physics.Raycast(transform.position + Vector3.down * 0.9f, Vector3.down, 0.5f))
+        {
+            fixNetGuessWork();
+            onGround = true;
+        }
+        else
+        {
+            onGround = Physics.Raycast(transform.position + Vector3.down * 0.9f, Vector3.down, 0.5f);
+        }
         // Check if underground
         if(transform.position.y < RespawnYLimit && !isDead)
         {
@@ -319,6 +361,20 @@ public class CharacterControls : MonoBehaviour
     {
         _Help.ToggleDeathPanel();
         PhotonNetwork.Destroy(myPhotonView);
+        ArmLeft.transform.SetParent(null);
+        ArmLeft.SetActive(true);
+        ArmLeft.GetComponent<Rigidbody>().isKinematic = false;
+        ArmLeft.GetComponent<BoxCollider>().isTrigger = false;
+        ArmRight.transform.SetParent(null);
+        ArmRight.GetComponent<BoxCollider>().isTrigger = false;
+        ArmRight.GetComponent<Rigidbody>().isKinematic = false;
+        ArmRight.SetActive(true);
+        Body.transform.SetParent(null);
+        Body.GetComponent<Rigidbody>().isKinematic = false;
+        Body.SetActive(true);
+        Head.transform.SetParent(null);
+        Head.GetComponent<Rigidbody>().isKinematic = false;
+        Head.SetActive(true);
     }
 
     [PunRPC]
@@ -333,8 +389,11 @@ public class CharacterControls : MonoBehaviour
         ArmRight.transform.SetParent(null);
         ArmRight.GetComponent<BoxCollider>().isTrigger = false;
         ArmRight.GetComponent<Rigidbody>().isKinematic = false;
-        FakeBody.transform.SetParent(null);
-        FakeBody.SetActive(true);
+        Body.transform.SetParent(null);
+        Body.GetComponent<Rigidbody>().isKinematic = false;
+        Head.transform.SetParent(null);
+        Head.GetComponent<Rigidbody>().isKinematic = false;
+
     }
 
     private void die()
@@ -343,54 +402,88 @@ public class CharacterControls : MonoBehaviour
         localDie();
     }
 
+    /// <summary>
+    /// Other players iPCs on your game.
+    /// </summary>
     [PunRPC]
     public void DoPunch()
     {
         animator.SetTrigger("DoPunch");
-        if (Physics.Raycast(transform.position, cameraTransform.forward, 3f))
+        previousPunchTime = Time.time;
+        if (punchTargets.Count > 0)
         {
-            punchGroundSound.Play();
-            if (punchTarget != null)
-            {
-                punchTarget.rigidbody.AddExplosionForce(PunchBoostForce, punchTarget.rigidbody.position + punchTarget.cameraTransform.forward * 5, 100f);
-                punchTarget.ModHealth(-PunchDamage);
-                MusicManager._SwitchTo(1);
-            }
-        }
-    }
-
-    public void DoPunchLocal()
-    {
-        animator.SetTrigger("DoPunch");
-        jetpackFuel = Mathf.Max(jetpackFuel - PunchEnergy, 0f);
-        if (jetpackFuel != 0f && Physics.Raycast(transform.position, cameraTransform.forward, 3f))
-        {
-            if (Physics.Raycast(transform.position, cameraTransform.forward, 3f))
+            for(int x = 0; x < punchTargets.Count; x++)
             {
                 punchGroundSound.Play();
-                rigidbody.AddExplosionForce(PunchBoostForce, transform.position + cameraTransform.forward * 5, 100f);
+                punchTargets[x].ModHealth(-PunchDamage);
+                //punchTarget.rigidbody.AddExplosionForce(PunchBoostForce, punchTarget.rigidbody.position + punchTarget.cameraTransform.forward * 5, 100f);
+                if (punchTargets[x].myPhotonView.isMine)
+                {
+                    jetpackFuel = Mathf.Max(jetpackFuel - PunchEnergy, 0f);
+                    rigidbody.AddExplosionForce(PunchBoostForce, transform.position + cameraTransform.forward * 5, 100f);
+                    rigidbody.velocity += punchTargets[x].rigidbody.velocity;
+                    fixNetGuessWork();
+                    CBUG.Do("I GOT PUNCHED!");
+                }
+                
             }
+        }else if (Physics.Raycast(transform.position, cameraTransform.forward, 3f))
+        {
+            rigidbody.AddExplosionForce(PunchBoostForce, transform.position + cameraTransform.forward * 5, 100f);
         }
     }
 
     [PunRPC]
     public void DoWave()
     {
+        //PC -> 1. Waves to WaveCandidates -> 2a. If(WaveCan in WaveReci) marksCalls WaveCan's ReceiveWave RPC ->
+
+        //iPC  -> 3. ReceiveWave records Waver's ID -> iPC Waves to WaveCandidates 
         animator.SetTrigger("DoWave");
-        if (waveTarget != null)
+        if (WaveCandidates.Count > 0)
         {
-            waveTarget.Health = 100f;
+            for(int x = 0; x < WaveCandidates.Count; x++)
+            {
+                //If they already waved at us
+                if (WaveRecieved.Contains(WaveCandidates[x].viewID))
+                {
+                    //MAKE FRIENDS
+                    FriendIDs.Add(WaveCandidates[x].viewID);
+                    WaveRecieved.Remove(WaveCandidates[x].viewID);
+                    //On local machine, if the friend is me
+                    if (WaveCandidates[x].isMine)
+                    {
+                        //Make their icon appear
+                        FriendIcon.SetActive(true);
+                        EnemyIcon.SetActive(false);
+                        //Me
+                        WaveCandidates[x].transform.GetComponent<CharacterControls>().FriendIDs.Add(WaveCandidates[x].viewID);
+                    }
+                }
+                else
+                {
+                    WaveCandidates[x].RPC("ReceiveWave", PhotonTargets.All, myPhotonView.viewID);
+                    //if(!FriendIDs.Contains(WaveCandidates[x].viewID))
+                    //    WaveRecieved.Add(WaveCandidates[x].viewID);
+                }
+
+            }
+            //waveTarget.Health = 100f;
+
         }
     }
 
-    public void DoWaveLocal()
+    [PunRPC]
+    public void ReceiveWave(int viewID_received)
     {
-        animator.SetTrigger("DoWave");
-        if (waveTarget != null)
-        {
-            waveTarget.Health = 100f;
-        }
+        WaveRecieved.Add(viewID_received);
     }
+
+    //[PunRPC]
+    //public void ConfirmWave(int viewID_confirmed)
+    //{
+    //    FriendIcon.SetActive(true);
+    //}
 
     //private void respawn()
     //{
@@ -416,10 +509,35 @@ public class CharacterControls : MonoBehaviour
     public void ModHealth(float HPChange)
     {
         Health += HPChange;
-        if(HPChange < 0)
+        if(HPChange < 0 && myPhotonView.isMine)
         {
-            previousPunchTime = Time.time;
-            direSituation = true;
+            direSituationActivate();
         }
+    }
+
+    /// <summary>
+    /// Activated whenever PC gets punched by iPC.
+    /// </summary>
+    private void direSituationActivate()
+    {
+        MusicManager._SwitchTo(1);
+        EnemyIcon.SetActive(true);
+        FriendIcon.SetActive(false);
+        direSituation = true;
+        previousPunchTime = Time.time;
+    }
+
+    private void safeSituationActivate()
+    {
+        MusicManager._SwitchTo(1);
+        EnemyIcon.SetActive(false);
+        direSituation = false;
+    }
+
+    private void fixNetGuessWork()
+    {
+        GetComponent<PhotonTransformView>().SetSynchronizedValues(rigidbody.velocity,
+                (transform.rotation.eulerAngles.y - previousYrot) / Time.fixedDeltaTime);
+        CBUG.Do("FIXING SYNC VALUES");
     }
 }
